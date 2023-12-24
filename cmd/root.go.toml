@@ -1,0 +1,485 @@
+package cmd
+
+import (
+	//"time"
+	"sort"
+	"strings"
+	"reflect"
+	//"io/ioutil"
+    "fmt"
+    "os"
+    "github.com/spf13/cobra"
+    toml "github.com/BurntSushi/toml"
+     //toml "github.com/pelletier/go-toml/v2"
+)
+type (
+	example struct {
+	//	Title      string
+	//	Desc       string
+	//	Integers   []int
+	//	Floats     []float64
+	//	Times      []fmtTime
+	//	Duration   []time.Duration
+	//	Distros    []distro
+		Servers    map[string]server
+	//	Characters map[string][]struct {
+	//		Name string
+	//		Rank string
+	//	}
+	}
+
+	server struct {
+		x       string
+	}
+
+	//distro struct {
+	//	Name     string
+	//	Packages string
+	//}
+
+	//fmtTime struct{ time.Time }
+)
+
+
+
+type AWSCredentials struct {
+    Profiles map[string]Profile
+}
+type Profile struct {
+    KeyId string
+    AccessKey string
+}
+
+type AWSConfig struct {
+    Id string `toml:"drecom.id"`
+    Key string   `toml:"key"`
+}
+type Config struct {
+    //AWS AWSConfig `toml:"drecom-iron"`
+    AWS AWSConfig 
+}
+
+var rootCmd = &cobra.Command{Use: "cloud_go"}
+
+// go test -v cmd/*go
+func testRootCmd() *cobra.Command {
+    return &cobra.Command{}
+}
+
+//type idcfAccountINI struct {
+//    APIKey    string
+//    SecretKey string
+//    Region    string
+//    ILBRegion string
+//    Billing   string
+//}
+//
+//type idcfConfig struct {
+//    API struct {
+//        Compute string `yaml:"compute"`
+//        Ilb     string `yaml:"ilb"`
+//    } `yaml:"api"`
+//    //Ostype       map[string]string
+//    //El6          string            `yaml:"el6"`
+//    //El7          string            `yaml:"el7"`
+//    //Other        string            `yaml:"other"`
+//    Ostype       map[string]string `yaml:"ostype"`
+//    DiskOffering string            `yaml:"disk_offering"`
+//    Zones        map[string]string `yaml:"zones"`
+//    ZoneID       map[string]string `yaml:"zoneid"`
+//    Template     map[string]string `yaml:"template"`
+//}
+
+
+
+func listAWSProfiles() {
+	//fmt.Println(list)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Errorf("cannot get user home dir path: %s", err.Error())
+	}
+	credFile := home + "/.aws/credentials"
+    //bytes, err := ioutil.ReadFile(credFile)
+	//if err != nil {
+	//	fmt.Errorf("cannot readfile %s: %s", credFile, err.Error())
+	//}
+	//fmt.Println(string(bytes))
+
+    //o := &order{}
+    //_ := toml.Unmarshal([]byte(blob), o)
+    //_ := toml.Unmarshal(bytes, o)
+	//for _, part := range o.parts {
+		//fmt.Println(part.Name())	
+	//}
+
+	// f := "example.toml"
+	// var c example
+	// meta2, err := toml.DecodeFile(f, &c)
+	// fmt.Println(meta2.Keys())
+
+	//var c2 example
+	//meta3, err := toml.DecodeFile("/home/tk/.aws/credentials", &c2)
+	//fmt.Println(meta3.Keys())
+
+	//os.Exit(1)
+
+	var config AWSCredentials 
+	meta, _ := toml.DecodeFile(credFile, &config)
+	fmt.Println(meta.Keys())
+	indent := strings.Repeat(" ", 14)
+	typ, val := reflect.TypeOf(config), reflect.ValueOf(config)
+	fmt.Println(typ)
+	fmt.Print("Decoded")
+	for i := 0; i < typ.NumField(); i++ {
+		indent := indent
+		if i == 0 {
+			indent = strings.Repeat(" ", 7)
+		}
+		fmt.Printf("%s%-11s → %v\n", indent, typ.Field(i).Name, val.Field(i).Interface())
+	}
+		fmt.Print("\nKeys")
+	keys := meta.Keys()
+	fmt.Println(keys)
+	sort.Slice(keys, func(i, j int) bool { return keys[i].String() < keys[j].String() })
+}
+
+//var Config idcfConfig
+//var Secret idcfAccountINI
+var aws = &cobra.Command{
+    Use:   "aws",
+    Short: "aws",
+    Run: func(cmd *cobra.Command, args []string)  {
+    if list {
+		listAWSProfiles()
+    }
+//        //api_params := ""
+//        //response_xml := apiRequest(cmd.Use, api_params)
+//        //x := &listPublicIpAddressesResponseXML{}
+//        //err := xml.Unmarshal([]byte(response_xml), &x)
+//        //fmt.Printf("%15s %10s %10s %10s %20s %15s %40s %s\n", "IP", "state", "ZoneName", "IsSRCNat", "NATVM", "NATIP", "ID", "Tag")
+//        //if err != nil {
+//        
+//        fmt.Println("aws a")
+//
+//        //log.Fatal(err)
+//        ////}
+//        // //var tag string
+//        // for _, v := range x.Publicipaddress {
+//        //     tag = ""
+//        //     if len(v.Tags) != 0 {
+//        //         tag = string(v.Tags[0].Value)
+//        ////     }
+//            // fmt.Printf("%15v %10v %10v %10v %20v %15v %40v %v\n", v.Ipaddress, v.State, v.Zonename, v.Issourcenat, v.Virtualmachinename, v.Vmipaddress, v.ID, tag)
+    },
+}
+
+//var tc = &cobra.Command{Use: "tc", Run: func(cmd *cobra.Command, args []string) {}, }
+var tc = &cobra.Command{Use: "tc", Run: func(cmd *cobra.Command, args []string) {}, }
+
+var ec2 = &cobra.Command{
+    Use:   "ec2",
+    Run: func(cmd *cobra.Command, args []string) {
+    },
+}
+
+
+// 初期化
+var profile string
+var list bool
+func init() {
+
+ 
+    // aws --profile=drecom-iron  ec2 describe-instances
+
+    //var conf Config
+
+    // _, err := toml.DecodeFile(home + "/.config.toml", &conf)
+    //err := toml.Unmarshal([]byte(doc), &cfg)
+    //if err != nil {
+        //panic(err)
+    //}
+    //fmt.Println(conf.Id)
+
+    //cobra.EnableCommandSorting = false
+    //fmt.Println(toml)
+    rootCmd.PersistentFlags().StringVarP(&profile, "profile", "p", "", "AWS Profile")
+    //rootCmd.MarkFlagRequired("profile")
+
+    rootCmd.AddCommand(aws)
+    aws.Flags().BoolVarP(&list, "list", "", false, "AWS Profile List")
+
+    aws.AddCommand(ec2)
+
+    rootCmd.AddCommand(tc)
+    //tc.PersistentFlags().StringVarP(&profile, "profile", "p", "", "Tencent Profile")
+    //tc.MarkFlagRequired("profile")
+
+
+    // 認証設定定数読み込み
+    //loadConfig()
+
+//     // profile: 全サブコマンド共通必須オプション
+//     rootCmd.PersistentFlags().StringVarP(&profile, "profile", "p", "", "IDCF Cloud Profile in ~/.idcfcloud/config.ini")
+//     rootCmd.MarkPersistentFlagRequired("profile")
+// 
+//     // Address
+//     rootCmd.AddCommand(listPublicIpAddresses)
+// 
+//     // Async Job
+//     rootCmd.AddCommand(listAsyncJobs, queryAsyncJobResult)
+//     queryAsyncJobResult.Flags().StringVarP(&jobid, "jobid", "j", "", "JobID")
+//     queryAsyncJobResult.MarkFlagRequired("jobid")
+// 
+//     // Disk Offering
+//     rootCmd.AddCommand(listDiskOfferings)
+// 
+//     // Event
+//     rootCmd.AddCommand(listEvents)
+// 
+//     // Guest OS
+//     rootCmd.AddCommand(listOsTypes, listOsCategories)
+// 
+//     // Load Balancer (haproxy)
+//     rootCmd.AddCommand(listLoadBalancerRules, listLoadBalancerRuleInstances, assignToLoadBalancerRule, removeFromLoadBalancerRule)
+//     listLoadBalancerRuleInstances.Flags().StringVarP(&ip, "ip", "i", "", "LB Public IP")
+//     listLoadBalancerRuleInstances.MarkFlagRequired("ip")
+//     listLoadBalancerRuleInstances.Flags().StringVarP(&port, "port", "P", "", "LB Service Port")
+//     listLoadBalancerRuleInstances.MarkFlagRequired("port")
+// 
+//     assignToLoadBalancerRule.Flags().StringVarP(&ip, "ip", "i", "", "LB Public IP")
+//     assignToLoadBalancerRule.MarkFlagRequired("ip")
+//     assignToLoadBalancerRule.Flags().StringVarP(&port, "port", "P", "", "LB Service Port")
+//     assignToLoadBalancerRule.MarkFlagRequired("port")
+//     assignToLoadBalancerRule.Flags().StringVarP(&name, "name", "n", "", "VM Name (i.e. -n vm1,vm2,vm3)")
+//     assignToLoadBalancerRule.MarkFlagRequired("name")
+// 
+//     removeFromLoadBalancerRule.Flags().StringVarP(&ip, "ip", "i", "", "LB Public IP")
+//     removeFromLoadBalancerRule.MarkFlagRequired("ip")
+//     removeFromLoadBalancerRule.Flags().StringVarP(&port, "port", "P", "", "LB Service Port")
+//     removeFromLoadBalancerRule.MarkFlagRequired("port")
+//     removeFromLoadBalancerRule.Flags().StringVarP(&name, "name", "n", "", "VM Name (i.e. -n vm1,vm2,vm3)")
+//     removeFromLoadBalancerRule.MarkFlagRequired("name")
+// 
+//     // Network
+//     rootCmd.AddCommand(listNetworks)
+// 
+//     // Nic
+//     rootCmd.AddCommand(listNics)
+//     listNics.Flags().StringVarP(&name, "name", "n", "", "VM Name")
+//     listNics.MarkFlagRequired("name")
+// 
+//     // SSH
+//     // rootCmd.AddCommand(listSSHKeyPairs)
+// 
+//     // Service Offering
+//     rootCmd.AddCommand(listServiceOfferings)
+// 
+//     // Snapshot
+//     rootCmd.AddCommand(listSnapshots, createSnapshot, deleteSnapshot)
+//     createSnapshot.Flags().StringVarP(&name, "name", "n", "", "Snapshot Name")
+//     createSnapshot.MarkFlagRequired("name")
+//     createSnapshot.Flags().StringVarP(&volume, "volume", "v", "", "Volume Name")
+//     createSnapshot.MarkFlagRequired("volume")
+//     deleteSnapshot.Flags().StringVarP(&name, "name", "n", "", "Snapshot Name")
+//     deleteSnapshot.MarkFlagRequired("name")
+// 
+//     // Template
+//     rootCmd.AddCommand(listTemplates, createTemplate, registerTemplate, deleteTemplate, extractTemplate)
+//     createTemplate.Flags().StringVarP(&name, "name", "n", "", "Template Name")
+//     createTemplate.MarkFlagRequired("name")
+//     createTemplate.Flags().StringVarP(&ostype, "ostype", "t", "", "OS Type: el6 or el7 or other")
+//     createTemplate.MarkFlagRequired("ostype")
+//     createTemplate.Flags().StringVarP(&snapshot, "snapshot", "s", "", "Snapshot Name")
+//     createTemplate.MarkFlagRequired("snapshot")
+//     registerTemplate.Flags().StringVarP(&name, "name", "n", "", "Template Name")
+//     registerTemplate.MarkFlagRequired("name")
+//     registerTemplate.Flags().StringVarP(&ostype, "ostype", "t", "", "OS Type: el6 or el7 or other")
+//     registerTemplate.MarkFlagRequired("ostype")
+//     registerTemplate.Flags().StringVarP(&ova_url, "ova_url", "u", "", "extracted URL")
+//     registerTemplate.MarkFlagRequired("ova_url")
+//     registerTemplate.Flags().StringVarP(&zone, "zone", "z", "", "weber lux farad candela kelvin ")
+//     registerTemplate.MarkFlagRequired("zone")
+//     deleteTemplate.Flags().StringVarP(&name, "name", "n", "", "Template Name")
+//     deleteTemplate.MarkFlagRequired("name")
+//     extractTemplate.Flags().StringVarP(&name, "name", "n", "", "Template Name")
+//     extractTemplate.MarkFlagRequired("name")
+//     //extractTemplate.Flags().StringVarP(&zone, "zone", "z", "", "weber lux farad candela kelvin ")
+//     //extractTemplate.MarkFlagRequired("zone")
+//     // Volume
+//     rootCmd.AddCommand(attachVolume, detachVolume, createVolume, deleteVolume, resizeVolume, listVolumes)
+//     listVolumes.Flags().BoolVarP(&tsv_out, "t", "", false, "tsv output")
+//     attachVolume.Flags().StringVarP(&name, "name", "n", "", "VM Name")
+//     attachVolume.MarkFlagRequired("name")
+//     attachVolume.Flags().StringVarP(&volume, "volume", "v", "", "Volume Name")
+//     attachVolume.MarkFlagRequired("volume")
+//     detachVolume.Flags().StringVarP(&volume, "volume", "v", "", "Volume Name")
+//     detachVolume.MarkFlagRequired("volume")
+//     createVolume.Flags().StringVarP(&volume, "volume", "v", "", "Volume Name")
+//     createVolume.MarkFlagRequired("volume")
+//     createVolume.Flags().StringVarP(&size, "size", "s", "", "Volume Size(GB)")
+//     createVolume.MarkFlagRequired("size")
+//     createVolume.Flags().StringVarP(&zone, "zone", "z", "", "weber lux farad candela kelvin ")
+//     createVolume.MarkFlagRequired("zone")
+//     deleteVolume.Flags().StringVarP(&volume, "name", "v", "", "Volume Name")
+//     deleteVolume.MarkFlagRequired("volume")
+//     resizeVolume.Flags().StringVarP(&volume, "volume", "v", "", "Volume Name")
+//     resizeVolume.MarkFlagRequired("volume")
+//     resizeVolume.Flags().StringVarP(&size, "size", "s", "", "Volume Size(GB)")
+//     resizeVolume.MarkFlagRequired("size")
+// 
+//     // Zone
+//     rootCmd.AddCommand(listZones)
+// 
+//     // ILB backend
+//     //rootCmd.AddCommand(ilb_add_server, ilb_delete_server, ilb_list_servers)
+//     rootCmd.AddCommand(ilb_add_server, ilb_delete_server)
+//     ilb_add_server.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     ilb_add_server.MarkFlagRequired("ilb_name")
+//     ilb_add_server.Flags().StringVarP(&ilb_port, "ilb_port", "P", "", "ILB port")
+//     ilb_add_server.MarkFlagRequired("ilb_port")
+//     ilb_add_server.Flags().StringVarP(&name, "name", "n", "", "VM Name")
+//     ilb_add_server.MarkFlagRequired("name")
+// 
+//     ilb_delete_server.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     ilb_delete_server.MarkFlagRequired("ilb_name")
+//     ilb_delete_server.Flags().StringVarP(&ilb_port, "ilb_port", "P", "", "ILB port")
+//     ilb_delete_server.MarkFlagRequired("ilb_port")
+//     ilb_delete_server.Flags().StringVarP(&name, "name", "n", "", "VM Name")
+//     ilb_delete_server.MarkFlagRequired("name")
+// 
+//     //ilb_list_servers.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     //ilb_list_servers.MarkFlagRequired("ilb_name")
+//     //ilb_list_servers.Flags().StringVarP(&ilb_port, "ilb_port", "P", "", "ILB port")
+//     //ilb_list_servers.MarkFlagRequired("ilb_port")
+// 
+//     // ILB configuration
+//     rootCmd.AddCommand(ilb_get_config, ilb_patch_config)
+//     ilb_get_config.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     ilb_get_config.MarkFlagRequired("ilb_name")
+//     ilb_get_config.Flags().StringVarP(&ilb_port, "ilb_port", "P", "", "ILB port")
+//     ilb_get_config.MarkFlagRequired("ilb_port")
+// 
+//     ilb_patch_config.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     ilb_patch_config.MarkFlagRequired("ilb_name")
+//     ilb_patch_config.Flags().StringVarP(&ilb_port, "ilb_port", "P", "", "ILB port")
+//     ilb_patch_config.MarkFlagRequired("ilb_port")
+//     ilb_patch_config.Flags().StringVarP(&name, "name", "n", "", "VM Name (i.e. -n vm1,vm2,vm3)")
+//     ilb_patch_config.MarkFlagRequired("name")
+// 
+//     // ILB loadbalancer
+//     //rootCmd.AddCommand(ilb_list_loadbalancers, ilb_get_loadbalancer)
+//     rootCmd.AddCommand(ilb_list_loadbalancers)
+// 
+//     //ilb_get_loadbalancer.Flags().StringVarP(&ilb_name, "ilb_name", "i", "", "ILB name")
+//     //ilb_get_loadbalancer.MarkFlagRequired("ilb_name")
+// 
+//     // ILB job
+//     rootCmd.AddCommand(ilb_list_jobs, ilb_get_job)
+//     ilb_get_job.Flags().StringVarP(&jobid, "jobid", "j", "", "JobID")
+//     ilb_get_job.MarkFlagRequired("jobid")
+// 
+//     // Billing
+//     rootCmd.AddCommand(list_billing_history, list_billing_detail, list_billing_usage)
+//     list_billing_usage.Flags().BoolVarP(&json_out, "j", "", false, "json output")
+//     list_billing_usage.Flags().BoolVarP(&zabbix_out, "z", "", false, "zabbix sender output")
+//     list_billing_usage.Flags().BoolVarP(&zabbix_all, "all", "", false, "zabbix all vm sender output")
+
+}
+
+func Execute() {
+    rootCmd.Execute()
+}
+
+// // Load ~/.idcfcloud/default.ini
+// func loadConfig() {
+//     home := os.Getenv("HOME")
+//     configFile := filepath.Join(home, ".idcfcloud", "default.yml")
+// 
+//     buf, err := os.ReadFile(configFile)
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+//     if err := yaml.Unmarshal(buf, &Config); err != nil {
+//         log.Fatal(configFile, "\n", err)
+// 
+//     }
+// 
+// }
+// 
+// // Load ~/.idcfcloud/config.ini
+// func secretConfig() {
+//     home := os.Getenv("HOME")
+//     configFile := filepath.Join(home, ".idcfcloud", "config.ini")
+//     c, err := ini.Load(configFile)
+//     if err != nil {
+//         log.Fatal(configFile + " cannot Load")
+//     }
+//     Secret = idcfAccountINI{
+//         APIKey:    c.Section(profile).Key("api_key").String(),
+//         SecretKey: c.Section(profile).Key("secret_key").String(),
+//         Region:    c.Section(profile).Key("region").String(),
+//         ILBRegion: c.Section(profile).Key("ilb_region").String(),
+//         Billing:   c.Section(profile).Key("billing").String(),
+//     }
+//     if Secret == (idcfAccountINI{}) {
+//         log.Fatal("no Section: " + profile)
+//     }
+// }
+
+
+/*
+ * API リクエスト
+ */
+//   func sendRequest(cmd, api_params string, signature string) string {
+//   
+//       // リクエストurl
+//       //url := Config.API.Compute + "?" + "command=" + cmd + api_params + "&apikey=" + Secret.APIKey + "&signature=" + signature
+//       url := Secret.Region + "?" + "command=" + cmd + api_params + "&apikey=" + Secret.APIKey + "&signature=" + signature
+//   
+//       // リクエスト
+//       req, err := http.NewRequest("GET", url, nil)
+//       if err != nil {
+//           log.Fatal(err)
+//       }
+//   
+//       client := &http.Client{}
+//       /*
+//           Transport: &http.Transport{
+//               TLSClientConfig: &tls.Config{
+//                   InsecureSkipVerify: true,
+//               },
+//           }}
+//       */
+//       res, err := client.Do(req)
+//       if err != nil {
+//           log.Fatal(err)
+//       }
+//   
+//       defer res.Body.Close()
+//       body, err := io.ReadAll(res.Body)
+//       if err != nil {
+//           log.Fatal(err)
+//       }
+//   
+//       return string(body)
+//   }
+
+//  // https://www.idcf.jp/api-docs/apis/?id=docs_compute_request
+//  func apiRequest(cmd, api_params string) string {
+//  
+//      signature := createSignature(cmd, api_params)
+//      return sendRequest(cmd, api_params, signature)
+//  }
+//  
+//  func asyncResponse(response_xml string) {
+//      x := &asyncResponseXML{}
+//      err := xml.Unmarshal([]byte(response_xml), &x)
+//      if err != nil {
+//          log.Fatal(err)
+//      }
+//      if x.Jobid == "" {
+//          fmt.Println(response_xml)
+//      } else {
+//          fmt.Printf("%+v\n", x)
+//      }
+//  }
